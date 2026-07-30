@@ -7,6 +7,8 @@ AllCops:
     - 'examples/**/*'
     - 'docs/**/*'
     - 'benchmark/**/*'
+    # ruby/setup-ruby installs dependencies here when Bundler caching is enabled.
+    - 'vendor/bundle/**/*'
     - 'Gemfile'
     - 'Rakefile'
     - '*.gemspec'
