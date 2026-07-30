@@ -2,6 +2,7 @@
 
 require "json"
 require "monitor"
+require "set"
 require_relative "contracts/version"
 
 # Runtime behavioral contracts. Include in classes or extend for singleton contracts.
