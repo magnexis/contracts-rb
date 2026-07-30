@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    contracts-rb (0.1.0)
+    contracts-rb (0.1.1)
 
 GEM
   remote: https://rubygems.org/
@@ -66,4 +66,4 @@ DEPENDENCIES
   rubocop (~> 1.70)
 
 BUNDLED WITH
-   2.6.9
+  2.6.9
