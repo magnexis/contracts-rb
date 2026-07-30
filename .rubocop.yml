@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 3.4
+  TargetRubyVersion: 3.1
   NewCops: enable
   SuggestExtensions: false
   Exclude:
@@ -32,6 +32,10 @@ Naming/PredicateMethod:
   Enabled: false
 
 Style/Documentation:
+  Enabled: false
+
+# Anonymous argument forwarding is unavailable on the gem's Ruby 3.1 floor.
+Style/ArgumentsForwarding:
   Enabled: false
 
 Style/FrozenStringLiteralComment:

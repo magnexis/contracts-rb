@@ -137,13 +137,14 @@ module Contracts
     end
 
     def [](key) = @values[key.to_sym]
-    def fetch(key, *) = @values.fetch(key.to_sym, *)
+    # Explicit splat parameters keep this compatible with Ruby 3.1.
+    def fetch(key, *arguments) = @values.fetch(key.to_sym, *arguments)
     def to_h = @values.dup
     def key?(key) = @values.key?(key.to_sym)
     def keys = @values.keys
     def values = @values.values
-    def dig(*) = @values.dig(*)
-    def method_missing(name, *) = @values.fetch(name) { super }
+    def dig(*arguments) = @values.dig(*arguments)
+    def method_missing(name, *arguments) = @values.fetch(name) { super }
     def respond_to_missing?(name, include_private = false) = @values.key?(name) || super
   end
 
