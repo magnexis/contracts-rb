@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Behavioral contracts for Ruby methods and objects.">
+    <title>contracts-rb · Behavioral contracts for Ruby</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #14171d; color: #f3f5f7; }
+      * { box-sizing: border-box; } body { margin: 0; line-height: 1.55; }
+      a { color: #ff5362; text-decoration: none; } a:hover { text-decoration: underline; }
+      .wrap { width: min(1100px, calc(100% - 48px)); margin: 0 auto; }
+      header { padding: 28px 0; display: flex; align-items: center; justify-content: space-between; }
+      .wordmark { font-weight: 750; letter-spacing: -.04em; font-size: 1.15rem; color: #fff; }
+      nav { display: flex; gap: 22px; font-size: .95rem; }
+      .hero { padding: 52px 0 70px; display: grid; grid-template-columns: 1.12fr .88fr; align-items: center; gap: 34px; }
+      h1 { font-size: clamp(2.9rem, 8vw, 5.7rem); line-height: .95; letter-spacing: -.07em; margin: 0 0 24px; }
+      h2 { font-size: 1.7rem; letter-spacing: -.04em; margin: 0 0 12px; }
+      .lede { color: #b8c0ca; font-size: 1.22rem; max-width: 620px; }
+      .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+      .button { padding: 11px 16px; border-radius: 8px; background: #eb2538; color: #fff; font-weight: 700; }
+      .button.secondary { background: #252b35; color: #fff; }
+      .button:hover { text-decoration: none; filter: brightness(1.08); }
+      .logo { width: 100%; border-radius: 20px; box-shadow: 0 24px 80px rgba(0,0,0,.48); }
+      .bar { border-top: 1px solid #303744; border-bottom: 1px solid #303744; padding: 18px 0; color: #aab3c0; }
+      .bar strong { color: #fff; margin-right: 30px; }
+      section { padding: 70px 0; }
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 28px; }
+      .card { background: #1b2028; border: 1px solid #303744; padding: 22px; border-radius: 12px; }
+      .card h3 { margin: 0 0 8px; font-size: 1.05rem; } .card p { margin: 0; color: #b8c0ca; }
+      pre { overflow: auto; padding: 24px; background: #0f1217; border: 1px solid #303744; border-radius: 12px; color: #d9e1ec; }
+      footer { border-top: 1px solid #303744; padding: 30px 0 48px; color: #aab3c0; font-size: .93rem; }
+      @media (max-width: 760px) { .hero, .grid { grid-template-columns: 1fr; } header { align-items: flex-start; gap: 18px; flex-direction: column; } nav { gap: 14px; flex-wrap: wrap; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <a class="wordmark" href="./">contracts-rb</a>
+        <nav><a href="#features">Features</a><a href="#start">Get started</a><a href="contracts/contracts.md">Contract docs</a><a href="https://github.com/magnexis/contracts-rb">GitHub</a></nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div>
+            <h1>Make Ruby promises executable.</h1>
+            <p class="lede">contracts-rb adds lightweight behavioral contracts to Ruby methods and objects—without turning Ruby into a static type system.</p>
+            <div class="actions"><a class="button" href="https://rubygems.org/gems/contracts-rb">Install from RubyGems</a><a class="button secondary" href="https://github.com/magnexis/contracts-rb">View source</a></div>
+          </div>
+          <img class="logo" src="assets/contracts-rb-logo.png" alt="contracts-rb ruby gem logo">
+        </section>
+      </main>
+    </div>
+    <div class="bar"><div class="wrap"><strong>Ruby 3.1+</strong> Runtime contracts for methods, services, and stateful domain objects.</div></div>
+    <div class="wrap">
+      <section id="features"><h2>Behavior you can state, inspect, and enforce.</h2>
+        <div class="grid"><article class="card"><h3>Method contracts</h3><p>Validate parameters, preconditions, return values, and postconditions with idiomatic Ruby blocks.</p></article><article class="card"><h3>State safety</h3><p>Capture immutable before-state snapshots, preserve invariants, and declare permitted changes.</p></article><article class="card"><h3>Production control</h3><p>Sample enforcement, redact sensitive values, configure failure modes, and inspect contracts through the CLI.</p></article></div>
+      </section>
+      <section id="start"><h2>Five-minute start</h2><pre><code>gem "contracts-rb"
+
+class Account
+  include Contracts
+  attr_reader :balance
+
+  invariant { balance >= 0 }
+
+  contract :withdraw do
+    params amount: Numeric
+    requires { |amount:| amount.positive? }
+    observe :balance
+    changes :balance
+    returns Numeric
+  end
+end</code></pre>
+      <p>Read the <a href="https://github.com/magnexis/contracts-rb#readme">README</a> for snapshots, exceptions, inheritance, RSpec, Rails, and CLI usage.</p></section>
+    </div>
+    <footer><div class="wrap">contracts-rb is an MIT-licensed Magnexis project. <a href="https://github.com/magnexis/contracts-rb">Source and issues</a>.</div></footer>
+  </body>
+</html>
