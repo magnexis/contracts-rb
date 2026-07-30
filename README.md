@@ -23,6 +23,8 @@ Ruby tests describe expected examples; contracts keep critical method promises e
 
 ## Install
 
+Install the official package from [RubyGems: `contracts-rb`](https://rubygems.org/gems/contracts-rb).
+
 ```ruby
 gem "contracts-rb", "~> 0.1"
 require "contracts"
