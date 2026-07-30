@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.2 - 2026-07-30
+
+- Corrected package metadata links to use the repository's `master` branch.
+
 ## 0.1.1 - 2026-07-30
 
 - Restored Ruby 3.1 compatibility for snapshot argument handling and `Set` support.

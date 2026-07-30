@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name = "contracts-rb"
-  spec.version = "0.1.1"
+  spec.version = "0.1.2"
   spec.authors = ["Magnexis"]
   spec.summary = "Behavioral contracts for Ruby methods and objects"
   spec.description = "Expressive runtime contracts for parameters, results, state, invariants, and exceptions."
@@ -16,6 +16,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
   spec.metadata["rubygems_mfa_required"] = "true"
   spec.metadata["source_code_uri"] = "https://github.com/magnexis/contracts-rb"
-  spec.metadata["changelog_uri"] = "https://github.com/magnexis/contracts-rb/blob/main/CHANGELOG.md"
+  spec.metadata["changelog_uri"] = "https://github.com/magnexis/contracts-rb/blob/master/CHANGELOG.md"
   spec.metadata["bug_tracker_uri"] = "https://github.com/magnexis/contracts-rb/issues"
 end
