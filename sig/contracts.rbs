@@ -1,0 +1,7 @@
+module Contracts
+  VERSION: String
+  def self.configure: () { (Configuration) -> void } -> void
+  def self.contract_for: (Module owner, Symbol method_name, ?method_type: Symbol) -> Contract?
+  def self.nilable: (untyped value) -> Constraints::Nilable
+  def self.any: (*untyped values) -> Constraints::Union
+end

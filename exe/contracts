@@ -1,0 +1,105 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "cgi"
+require "fileutils"
+require "json"
+require "optparse"
+require "contracts"
+
+command = ARGV.shift || "help"
+options = { requires: [], format: "text", output: nil }
+OptionParser.new do |parser|
+  parser.on("--require PATH") { |path| options[:requires] << path }
+  parser.on("--format FORMAT") { |format| options[:format] = format }
+  parser.on("--output PATH") { |path| options[:output] = path }
+end.parse!
+options[:requires].each { |path| require File.expand_path(path) }
+
+def contracts_for(target)
+  return Contracts.registry.all unless target
+
+  owner_name, method_name = target.split("#", 2)
+  owner = owner_name.split("::").reject(&:empty?).inject(Object) { |scope, name| scope.const_get(name) }
+  method_name ? [Contracts.contract_for(owner, method_name)].compact : Contracts.registry.for_class(owner)
+end
+
+def markdown(contracts)
+  contracts.map do |contract|
+    item = contract.to_h
+    observed = item[:observed].map do |field|
+      "| `#{field[:name]}` | #{field[:deep] ? 'Yes' : 'No'} | `#{field[:comparator] || 'eql?'}` |"
+    end.join("\n")
+    <<~DOC
+      ## `#{item[:owner]}##{item[:method_name]}`
+
+      ### Parameters
+      #{item[:parameters].map { |name, rule| "- `#{name}`: `#{rule}`" }.join("\n")}
+
+      ### Preconditions
+      #{item[:preconditions].map { |rule| "- #{rule}" }.join("\n")}
+
+      ### Returns
+      `#{item[:return_constraint] || 'unspecified'}`
+
+      ### Observed State
+      | Field | Deep | Comparator |
+      |---|---:|---|
+      #{observed}
+
+      ### Permitted Changes
+      #{item[:permitted_changes].map { |field| "- `#{field}`" }.join("\n")}
+
+      ### Required Changes
+      #{item[:required_changes].empty? ? 'None.' : item[:required_changes].map { |field| "- `#{field}`" }.join("\n")}
+
+      ### Invariants
+      #{item[:invariants].map { |rule| "- #{rule}" }.join("\n")}
+
+      ### Allowed Exceptions
+      #{item[:allowed_exceptions].map { |rule| "- `#{rule}`" }.join("\n")}
+    DOC
+  end.join("\n")
+end
+
+case command
+when "version" then puts Contracts::VERSION
+when "inspect"
+  list = contracts_for(ARGV.shift)
+  puts(options[:format] == "json" ? JSON.pretty_generate(list.map(&:to_h)) : markdown(list))
+when "docs"
+  list = Contracts.registry.all
+  body = case options[:format]
+         when "json" then JSON.pretty_generate(list.map(&:to_h))
+         when "html" then "<html><body><pre>#{CGI.escapeHTML(markdown(list))}</pre></body></html>"
+         else markdown(list)
+         end
+  if options[:output]
+    path = options[:output]
+    if File.extname(path).empty?
+      FileUtils.mkdir_p(path)
+      path = File.join(path,
+                       "contracts.#{if options[:format] == 'json'
+                                      'json'
+                                    else
+                                      options[:format] == 'html' ? 'html' : 'md'
+                                    end}")
+    end
+    FileUtils.mkdir_p(File.dirname(path))
+    File.write(path, body)
+    puts path
+  else
+    puts body
+  end
+when "validate", "doctor"
+  failures = Contracts.registry.all.filter_map do |contract|
+    next if contract.method_name == :__invariant__
+
+    owner = contract.owner
+    "#{contract.id}: method missing" unless owner.method_defined?(contract.method_name) || owner.private_method_defined?(contract.method_name) || owner.protected_method_defined?(contract.method_name)
+  end
+  abort("Contract diagnostics failed:\n#{failures.join("\n")}") unless failures.empty?
+  puts(command == "doctor" ? "No contract wrapper or registry problems detected." : "Contracts are valid.")
+else
+  puts "Usage: contracts <version|inspect|validate|doctor|docs> [--require PATH] [--format FORMAT] [--output PATH]"
+end

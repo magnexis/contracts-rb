@@ -1,0 +1,26 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: bundle exec rspec
+      - run: bundle exec rubocop .
+      - run: bundle exec rake build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contracts-rb-gem
+          path: contracts-rb-*.gem

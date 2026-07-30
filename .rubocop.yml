@@ -1,0 +1,44 @@
+AllCops:
+  TargetRubyVersion: 3.4
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - 'spec/**/*'
+    - 'examples/**/*'
+    - 'docs/**/*'
+    - 'benchmark/**/*'
+    - 'Gemfile'
+    - 'Rakefile'
+    - '*.gemspec'
+
+Layout/EndOfLine:
+  Enabled: false
+
+Layout/LineLength:
+  Enabled: false
+
+Metrics:
+  Enabled: false
+
+# The contract DSL deliberately uses Struct-based immutable value objects and
+# Ruby callback hooks. These cops flag false positives for those patterns.
+Lint/MissingSuper:
+  Enabled: false
+
+Lint/DuplicateBranch:
+  Enabled: false
+
+Naming/PredicateMethod:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Exclude:
+    - 'Gemfile'
+    - 'Rakefile'
+    - '*.gemspec'
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes

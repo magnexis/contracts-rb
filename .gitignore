@@ -1,0 +1,6 @@
+/.bundle/
+/.rubocop_cache/
+/coverage/
+/pkg/
+*.gem
+*.log
