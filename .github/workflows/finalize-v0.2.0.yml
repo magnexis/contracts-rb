@@ -1,0 +1,70 @@
+name: Finalize Contracts-rb 0.2.0
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - ".github/workflows/finalize-v0.2.0.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - name: Validate and record diagnostics
+        shell: bash
+        run: |
+          set +e
+          {
+            echo '$ bundle exec rspec'
+            bundle exec rspec
+            echo '$ bundle exec rubocop .'
+            bundle exec rubocop .
+            echo '$ gem build contracts-rb.gemspec'
+            gem build contracts-rb.gemspec --output contracts-rb-0.2.0.gem
+            echo '$ installed gem smoke test'
+            rm -rf tmp/release-gem
+            gem install contracts-rb-0.2.0.gem --install-dir tmp/release-gem --no-document
+            GEM_HOME="$PWD/tmp/release-gem" GEM_PATH="$PWD/tmp/release-gem" ruby -e 'require "contracts"; require "contracts/structured"; abort unless Contracts::VERSION == "0.2.0"'
+          } > validation.log 2>&1
+          STATUS=$?
+          set -e
+          cat validation.log
+          if [ "$STATUS" -ne 0 ]; then
+            mkdir -p .release-status
+            cp validation.log .release-status/v0.2.0-failure.txt
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            rm -f .github/workflows/finalize-v0.2.0.yml .release-trigger/0.2.0
+            git add -A
+            git commit -m "Record Contracts-rb 0.2.0 validation failure"
+            git push origin HEAD:master
+            exit "$STATUS"
+          fi
+      - name: Commit clean release source and tag
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/finalize-v0.2.0.yml .release-trigger/0.2.0 .release-status/v0.2.0-failure.txt contracts-rb-0.2.0.gem
+          git add -A
+          git commit -m "Prepare Contracts-rb 0.2.0 release"
+          git push origin HEAD:master
+          git tag -a v0.2.0 -m "Contracts-rb 0.2.0"
+          git push origin v0.2.0
+      - name: Dispatch trusted publishing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run release.yml --ref master -f confirm_version=0.2.0
