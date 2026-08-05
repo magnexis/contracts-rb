@@ -9,18 +9,45 @@ permissions:
   contents: read
 
 jobs:
-  package:
+  release:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.4"
           bundler-cache: true
-      - run: bundle exec rspec
-      - run: bundle exec rubocop .
-      - run: bundle exec rake build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: contracts-rb-gem
-          path: contracts-rb-*.gem
+      - name: Verify version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          ruby -e 'spec = Gem::Specification.load("contracts-rb.gemspec"); abort "tag/version mismatch" unless "v#{spec.version}" == ENV.fetch("RELEASE_TAG")'
+          grep -F "## ${VERSION} -" CHANGELOG.md
+      - name: Test and lint
+        run: |
+          bundle exec rspec
+          bundle exec rubocop .
+      - name: Build exact gem
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          mkdir -p pkg
+          gem build contracts-rb.gemspec --output "pkg/contracts-rb-${VERSION}.gem"
+          gem install "pkg/contracts-rb-${VERSION}.gem" --install-dir tmp/gem-home --no-document
+          GEM_HOME="$PWD/tmp/gem-home" GEM_PATH="$PWD/tmp/gem-home" ruby -e 'require "contracts"; require "contracts/structured"; puts Contracts::VERSION'
+      - name: Publish to RubyGems with trusted publishing
+        uses: rubygems/release-gem@v1
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create "$RELEASE_TAG" pkg/*.gem --verify-tag --generate-notes --title "Contracts-rb ${RELEASE_TAG#v}"
