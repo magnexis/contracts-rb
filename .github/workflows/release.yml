@@ -3,10 +3,12 @@ name: Release
 on:
   push:
     tags: ["v*"]
-    branches: [master]
-    paths:
-      - ".release-trigger/0.2.0"
   workflow_dispatch:
+    inputs:
+      confirm_version:
+        description: Version to publish, such as 0.2.0
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -20,11 +22,19 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - name: Check out source
+      - name: Check out pushed tag
+        if: github.event_name == 'push'
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
+      - name: Check out selected tag
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v6
+        with:
+          ref: v${{ inputs.confirm_version }}
+          fetch-depth: 0
+          persist-credentials: false
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.4"
@@ -34,13 +44,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
             TAG="$GITHUB_REF_NAME"
+            VERSION="${TAG#v}"
           else
-            TAG="v0.2.0"
+            VERSION="${{ inputs.confirm_version }}"
+            TAG="v${VERSION}"
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Verify version
         env:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
@@ -60,22 +72,6 @@ jobs:
           gem build contracts-rb.gemspec --output "pkg/contracts-rb-${RELEASE_VERSION}.gem"
           gem install "pkg/contracts-rb-${RELEASE_VERSION}.gem" --install-dir tmp/gem-home --no-document
           GEM_HOME="$PWD/tmp/gem-home" GEM_PATH="$PWD/tmp/gem-home" ruby -e 'require "contracts"; require "contracts/structured"; puts Contracts::VERSION'
-      - name: Finalize semantic tag
-        if: github.ref_type != 'tag'
-        env:
-          RELEASE_TAG: ${{ steps.release.outputs.tag }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f .release-trigger/0.2.0
-          git add -A
-          git commit -m "Prepare Contracts-rb 0.2.0 release"
-          git push origin HEAD:master
-          if ! git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
-            git tag -a "$RELEASE_TAG" -m "Contracts-rb 0.2.0"
-            git push origin "$RELEASE_TAG"
-          fi
       - name: Publish to RubyGems with trusted publishing
         uses: rubygems/release-gem@v1
       - name: Create or refresh GitHub release
