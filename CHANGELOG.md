@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-08-04
+
+- Added `Contracts::Constraints::Tuple` for fixed-length heterogeneous arrays.
+- Added `Contracts::Constraints::Shape` for required and optional hash-key contracts.
+- Added `Contracts::Constraints.tuple` and `.shape` constructors.
+- Added strict extra-key handling with an opt-in `allow_extra` mode.
+- Added structured constraint serialization through `to_h`.
+- Corrected gem metadata links to the current `theworker02/contracts-rb` repository.
+
 ## 0.1.2 - 2026-07-30
 
 - Corrected package metadata links to use the repository's `master` branch.
